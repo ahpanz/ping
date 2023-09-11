@@ -1,0 +1,100 @@
+
+name: Statping build
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  data:
+    # this job collects general variables and inputs for later use.
+    # not all of them might be needed but having them in a central place is more helpful than 100% efficiency.
+    # also, the name is intentionally short to make later references shorter.
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.statping-versions.outputs.is_release }}
+      is_prerelease: ${{ steps.statping-versions.outputs.is_prerelease }}
+      # this will be v1.2.3 for on-tag builds and v1.2.3-numberofcommits-sha for off-tag builds
+      version: ${{ steps.statping-versions.outputs.version }}
+      go_version: ${{ steps.tool-versions.outputs.go_version }}
+      node_version: ${{ steps.tool-versions.outputs.node_version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # check on https://github.com/actions/checkout/pull/579 occasionally if actions/checkout can do this natively yet
+          fetch-depth: 0
+      - name: get statping version information
+        id: statping-versions
+        run: |
+          STABLE_TAG=$(git describe --tags --exclude '*-*')
+          BETA_TAG=$(git describe --tags --match '*-*')
+          echo "stable_tag=$STABLE_TAG" >> $GITHUB_OUTPUT
+          echo "beta_tag=$BETA_TAG" >> $GITHUB_OUTPUT
+          if [ "${{ github.ref }}" = "refs/tags/$STABLE_TAG" ]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "version=$STABLE_TAG" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/tags/$BETA_TAG" ]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "version=$BETA_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "version=$STABLE_TAG" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+      - name: get go/node version information
+        id: tool-versions
+        run: |
+          echo "go_version=1.20.x" >> $GITHUB_OUTPUT
+          echo "node_version=16.14.0" >> $GITHUB_OUTPUT
+        shell: bash
+      - name: show data results
+        run: |
+          echo == tools versions ==
+          echo go_version: ${{ steps.tool-versions.outputs.go_version }}
+          echo node_version: ${{ steps.tool-versions.outputs.node_version }}
+          echo == matched tags ==
+          echo stable_tag: ${{ steps.statping-versions.outputs.stable_tag }}
+          echo beta_tag: ${{ steps.statping-versions.outputs.beta_tag }}
+          echo == release information ==
+          echo is_release: ${{ steps.statping-versions.outputs.is_release }}
+          echo is_prerelease: ${{ steps.statping-versions.outputs.is_prerelease }}
+          echo == statping version ==
+          echo version: ${{ steps.statping-versions.outputs.version }}
+  frontend:
+    runs-on: ubuntu-latest
+    needs: data
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ needs.data.outputs.go_version }}
+      - name: Install rice
+        run: go install github.com/GeertJohan/go.rice/rice@latest
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ needs.data.outputs.node_version }}
+      - name: Download Frontend Dependencies
+        working-directory: ./frontend
+        run: yarn
+      - name: Build Frontend Statping
+        working-directory: ./frontend
+        run: yarn build
+      - name: Copy built frontend
+        run: |
+          cp -r frontend/dist source/
+          cp -r frontend/src/assets/scss source/dist/
+          cp frontend/public/robots.txt source/dist/
+      - name: Build rice-box.go
+        run: rice embed-go
+        working-directory: source
+      - name: Upload Compiled Frontend (rice-box.go)
+        uses: actions/upload-artifact@v1
+        with:
+          name: static-rice-box
+          path: ./source
