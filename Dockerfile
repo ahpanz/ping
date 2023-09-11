@@ -46,6 +46,7 @@ RUN chmod a+x statping && mv statping /go/bin/statping
 # /root/sassc/bin/sassc - sass binary
 # /statping - Vue frontend (from frontend)
 
+
 # Statping main Docker image that contains all required libraries
 FROM alpine:latest
 
