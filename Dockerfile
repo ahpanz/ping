@@ -16,7 +16,7 @@ RUN git clone --depth 1 --branch 3.6.2 https://github.com/sass/sassc.git
 RUN . sassc/script/bootstrap && make -C sassc -j4
 # sassc binary: /root/sassc/bin/sassc
 
-WORKDIR /go/src/github.com/statping-ng/statping-ng
+WORKDIR /go/src/github.com/ahpanz/ping
 ADD go.mod go.sum ./
 RUN go mod download
 ENV GO111MODULE on
