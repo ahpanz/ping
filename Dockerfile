@@ -16,6 +16,7 @@ RUN git clone --depth 1 --branch 3.6.2 https://github.com/sass/sassc.git
 RUN . sassc/script/bootstrap && make -C sassc -j4
 # sassc binary: /root/sassc/bin/sassc
 
+COPY . /go/src/
 WORKDIR /go/src/
 ADD go.mod go.sum ./
 RUN go mod download
