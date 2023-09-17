@@ -1,13 +1,3 @@
-FROM node:16.14.0-alpine AS frontend
-LABEL maintainer="Statping-ng (https://github.com/statping-ng)"
-ARG BUILDPLATFORM
-WORKDIR /statping
-COPY ./frontend/package.json .
-COPY ./frontend/yarn.lock .
-RUN yarn install --pure-lockfile --network-timeout 1000000
-COPY ./frontend .
-RUN yarn build && yarn cache clean
-
 # Statping Golang BACKEND building from source
 # Creates "/go/bin/statping" and "/usr/local/bin/sass" for copying
 FROM golang:1.20-alpine AS backend
@@ -37,7 +27,7 @@ COPY notifiers ./notifiers
 COPY source ./source
 COPY types ./types
 COPY utils ./utils
-COPY --from=frontend /statping/dist/ ./source/dist/
+COPY source/dista/ ./source/dist/
 RUN go install github.com/GeertJohan/go.rice/rice@latest
 RUN cd source && rice embed-go
 RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=$VERSION -X main.COMMIT=$COMMIT" -o statping --tags "netgo linux" ./cmd
