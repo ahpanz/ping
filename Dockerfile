@@ -16,7 +16,7 @@ RUN git clone --depth 1 --branch 3.6.2 https://github.com/sass/sassc.git
 RUN . sassc/script/bootstrap && make -C sassc -j4
 # sassc binary: /root/sassc/bin/sassc
 
-WORKDIR /go/src/github.com/ahpanz/ping
+WORKDIR /go/src/
 ADD go.mod go.sum ./
 RUN go mod download
 ENV GO111MODULE on
@@ -29,7 +29,6 @@ COPY source ./source
 COPY types ./types
 COPY utils ./utils
 COPY source/dist/ ./source/dist/
-RUN go get github.com/ahpanz/ping/source
 RUN go install github.com/GeertJohan/go.rice/rice@latest
 RUN cd source && rice embed-go
 RUN go build -a -ldflags "-s -w -extldflags -static -X main.VERSION=$VERSION -X main.COMMIT=$COMMIT" -o statping --tags "netgo linux" ./cmd
