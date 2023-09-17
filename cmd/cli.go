@@ -10,7 +10,7 @@ import (
 	"github.com/ahpanz/ping/types/configs"
 	"github.com/ahpanz/ping/types/core"
 	"github.com/ahpanz/ping/types/services"
-	"github.com/ahpanz/ping//utils"
+	"github.com/ahpanz/ping/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
