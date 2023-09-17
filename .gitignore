@@ -22,7 +22,6 @@ dart-sass
 .env
 logs
 tmp
-source/dist
 /dev/test/node_modules
 dev/test/cypress/videos
 dev/test/cypress/screenshots
@@ -30,9 +29,7 @@ dev/test/app
 source/rice-box.go
 sass
 .DS_Store
-source/css/base.css.map
 dev/test/node_modules
-source/scss
 databases
 statping
 docker
