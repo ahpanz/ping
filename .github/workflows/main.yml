@@ -11,10 +11,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ping
+      run: docker build . --file Dockerfile --tag ping2
 
     - name: Save Docker image
-      run: docker save --output image.tar ping
+      run: docker save --output image.tar ping2
       
     - name: Upload Docker image
       uses: actions/upload-artifact@v2
